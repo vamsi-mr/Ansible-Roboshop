@@ -4,8 +4,8 @@
   tasks: 
   - name: copy mongodb repo
     ansible.builtin.copy:
-    src: mongo.repo
-    dest: /etc/yum.repos.d/momgo.repo
+      src: mongo.repo
+      dest: /etc/yum.repos.d/momgo.repo
 
   - name: Install mongodb server
     ansible.builtin.package:
@@ -27,3 +27,7 @@
     ansible.builtin.service:
       name: mongod
       state: restarted
+
+
+
+      
