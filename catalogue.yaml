@@ -1,5 +1,5 @@
-- name: configuring catalogue 
-  hosts: catalogue  
+- name: configuring catalogue component
+  hosts: catalogue 
   become: yes
   tasks: 
   - name: Disabling default nodejs
@@ -12,12 +12,6 @@
     ansible.builtin.package:
       name: nodejs
       state: present
-    
-  - name: Enabling and starting nodejs
-    ansible.builtin.service:
-      name: nodejs  
-      state: started
-      enabled: yes
 
   - name: create app directory
     ansible.builtin.file:
