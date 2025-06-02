@@ -38,7 +38,7 @@
       remote_src: yes #yes means file already existed on the catalogue server
 
   - name: install the dependencies
-    community.genral.npm: 
+    community.general.npm: 
       path: /app
 
   - name: copy catalogue service file to system directory
