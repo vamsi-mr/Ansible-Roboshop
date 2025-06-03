@@ -19,12 +19,12 @@
       state: started
       enabled: yes
 
-  - name: remove html directory
+  - name: removing html directory
     ansible.builtin.file:
       path: /usr/share/nginx/html
       state: absent
 
-  - name: create html directory
+  - name: creating html directory
     ansible.builtin.file:
       path: /usr/share/nginx/html
       state: directory
@@ -40,7 +40,7 @@
       dest: /usr/share/nginx/html
       remote_src: yes
 
-  - name: remove default nginx conf
+  - name: removing default nginx conf
     ansible.builtin.file:
       path: /etc/nginx/nginx.conf
       state: absent
@@ -50,7 +50,7 @@
       src: nginx.conf
       dest: /etc/nginx/nginx.conf
 
-  - name: restart nginx
+  - name: restarting nginx
     ansible.builtin.service:
       name: nginx
       state: restarted
