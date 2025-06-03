@@ -49,10 +49,10 @@
     ansible.builtin.copy:
       src: nginx.conf
       dest: /etc/nginx/nginx.conf
-      
+
+  - name: restarting nginx
     tags:
       -import
-  - name: restarting nginx
     ansible.builtin.service:
       name: nginx
       state: restarted
