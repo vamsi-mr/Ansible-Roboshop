@@ -20,8 +20,6 @@
       enabled: yes
 
   - name: remove html directory
-    tags:
-    - import
     ansible.builtin.file:
       path: /usr/share/nginx/html
       state: absent
