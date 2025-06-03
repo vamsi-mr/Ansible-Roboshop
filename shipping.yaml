@@ -83,7 +83,7 @@
     community.mysql.mysql_db:
       name: all
       login_user: root
-      login_passowrd: RoboShop@1
+      login_password: RoboShop@1
       login_host: mysql.ravada.site
       state: import
       target: "{{ item }}"
