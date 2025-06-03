@@ -1,0 +1,101 @@
+- name: configuring shipping component
+  hosts: shipping
+  become: yes
+  tasks: 
+  - name: Installing maven and mysql
+    ansible.builtin.package:
+      name: "{{ item }}"
+      state: present
+    loop:
+    - maven
+    - mysql
+
+
+  - name: Installing PyMySQL and cryptography packages
+    ansible.builtin.pip:
+      name: "{{ item }}"
+      executable: pip3.9
+      state: present
+    loop:
+    - PyMySQL
+    - cryptography
+  
+  - name: creating app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: creating roboshop system user
+    ansible.builtin.user: 
+      name: roboshop
+      shell: /sbin/nologin
+      system: true 
+      home: /app
+
+  - name: downloading shipping code
+    ansible.builtin.get_url:
+      url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip 
+      dest: /tmp/shipping.zip
+
+ # this module thinks file exist on ansible control server, needs to extract on to remote machine
+  - name: unzippin the zipped shippping file
+    ansible.builtin.unarchive:
+      src: /tmp/shipping.zip
+      dest: /app
+      remote_src: yes #yes means file already existed on the catalogue server
+
+  - name: installing maven dependencies
+    ansible.builtin.package: 
+    args:
+      chdir: /app
+
+  - name: renaming the jar file
+    ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
+    args:
+      chdir: /app
+
+  - name: copy shipping service file to system directory
+    ansible.builtin.copy:
+      src: shipping.service
+      dest: /etc/systemd/system/shipping.service
+
+  - name: systemctl daemon reload
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+  - name: Starting and enabling shipping
+    ansible.builtin.service:
+      name: shipping
+      state: started
+      enabled: yes
+
+  # - name: connecting to mysql app-user
+  #   community.mysql.mysql_info:
+  #     login_user: shipping
+  #     login_passowrd: RoboShop@1
+  #     login_host: mysql.ravada.site
+  #     login_db: cities
+      
+
+  - name: import data into the shipping
+    # tags: 
+    # - import
+    community.mysql.mysql_info:
+      name: all
+      login_user: root
+      login_passowrd: RoboShop@1
+      login_host: mysql.ravada.site
+      state: import
+      target: "{{ item }}"
+    loop:
+    - /app/db/schema.sql
+    - /app/db/app-user.sql
+    - /app/db/master-data.sql
+
+  - name: restarting shipping service
+    ansible.builtin.service:
+      name: shipping
+      state: restarted
+  
+   
+      
