@@ -12,7 +12,7 @@
     - python3-devel
 
   - name: creating app directory
-    ansibl.builtin.file:
+    ansible.builtin.file:
       path: /app
       state: directory
 
