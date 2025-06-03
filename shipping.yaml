@@ -45,7 +45,7 @@
       remote_src: yes #yes means file already existed on the catalogue server
 
   - name: installing maven dependencies
-    ansible.builtin.package: mvn clean package
+    ansible.builtin.command: mvn clean package
     args:
       chdir: /app
 
