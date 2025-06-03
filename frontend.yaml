@@ -51,6 +51,8 @@
       dest: /etc/nginx/nginx.conf
 
   - name: restart nginx
+    tags:
+    - import
     ansible.builtin.service:
       name: nginx
       state: restarted
