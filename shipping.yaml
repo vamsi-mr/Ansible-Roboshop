@@ -78,9 +78,9 @@
       
 
   - name: import data into the shipping
-    # tags: 
-    # - import
-    community.mysql.mysql_info:
+    tags: 
+    - import
+    community.mysql.mysql_db:
       name: all
       login_user: root
       login_passowrd: RoboShop@1
