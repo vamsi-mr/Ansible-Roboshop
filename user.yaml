@@ -39,6 +39,7 @@
         url: https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip
         dest: /tmp/user.zip
 
+  # this module thinks file exist on ansible control server, needs to extract on to remote machine
     - name: Extract user code
       ansible.builtin.unarchive:
         src: /tmp/user.zip
