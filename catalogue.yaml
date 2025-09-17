@@ -17,6 +17,13 @@
         name: nodejs
         state: present
 
+    - name: Create roboshop system user
+      ansible.builtin.user:
+        name: roboshop
+        shell: /sbin/nologin
+        system: true
+        home: /app
+
     - name: Create /app directory
       ansible.builtin.file:
         path: /app
@@ -24,13 +31,6 @@
         owner: roboshop
         group: roboshop
         mode: '0755'
-
-    - name: Create roboshop system user
-      ansible.builtin.user:
-        name: roboshop
-        shell: /sbin/nologin
-        system: true
-        home: /app
 
     - name: Download the catalogue code
       ansible.builtin.get_url:
