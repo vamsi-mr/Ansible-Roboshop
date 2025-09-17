@@ -3,7 +3,7 @@
   hosts: cart
   become: yes
   vars_files:
-    - secrets.yaml   # Load secrets (like DB passwords) from encrypted file
+    - secrets.yml   # Load secrets (like DB passwords) from encrypted file
 
   tasks:
 
