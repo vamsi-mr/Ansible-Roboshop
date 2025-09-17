@@ -2,8 +2,10 @@
 - name: Configuring Redis Component
   hosts: redis
   become: yes
-  tasks:
+  vars_files:
+    - secrets.yaml
 
+  tasks:
     - name: Disable default Redis module
       ansible.builtin.command: dnf module disable redis -y
       changed_when: false
@@ -34,3 +36,4 @@
         name: redis
         state: started
         enabled: yes
+
