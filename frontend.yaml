@@ -27,14 +27,19 @@
         state: started
         enabled: yes
 
-    - name: Ensure clean HTML directory
+    - name: Remove old HTML directory
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: absent
+
+    - name: Recreate HTML directory
       ansible.builtin.file:
         path: /usr/share/nginx/html
         state: directory
         owner: nginx
         group: nginx
         mode: '0755'
-
+        
     - name: Download frontend code if not already downloaded
       ansible.builtin.get_url:
         url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
