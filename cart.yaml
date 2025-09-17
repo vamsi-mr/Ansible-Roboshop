@@ -1,57 +1,79 @@
-- name: configuring cart component
-  hosts: cart 
+---
+- name: Configuring Cart Component
+  hosts: cart
   become: yes
-  tasks: 
-  - name: Disabling default nodejs
-    ansible.builtin.command: dnf module disable nodejs -y
+  vars_files:
+    - secrets.yaml   # Load secrets (like DB passwords) from encrypted file
 
-  - name: Enabling nodejs:20 version
-    ansible.builtin.command: dnf module enable nodejs:20 -y
+  tasks:
 
-  - name: Installing nodejs
-    ansible.builtin.package:
-      name: nodejs
-      state: present
+    # Disable default NodeJS module to avoid conflicts
+    - name: Disable default NodeJS module
+      ansible.builtin.command: dnf module disable nodejs -y
+      changed_when: false
 
-  - name: create app directory
-    ansible.builtin.file:
-      path: /app
-      state: directory
+    # Enable NodeJS 20 module to install the required version
+    - name: Enable NodeJS 20 module
+      ansible.builtin.command: dnf module enable nodejs:20 -y
+      changed_when: false
 
-  - name: create roboshop system user
-    ansible.builtin.user: 
-      name: roboshop
-      shell: /sbin/nologin
-      system: true 
-      home: /app
+    # Install NodeJS runtime
+    - name: Install NodeJS
+      ansible.builtin.package:
+        name: nodejs
+        state: present
 
-  - name: download the cart code
-    ansible.builtin.get_url:
-      url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip 
-      dest: /tmp/cart.zip
+    # Create application directory /app with correct ownership and permissions
+    - name: Create /app directory
+      ansible.builtin.file:
+        path: /app
+        state: directory
+        owner: roboshop
+        group: roboshop
+        mode: '0755'
 
-  # this module thinks file exist on ansible control server, needs to extract on to remote machine
-  - name: unzip the zipped cart file
-    ansible.builtin.unarchive:
-      src: /tmp/cart.zip
-      dest: /app
-      remote_src: yes #yes means file already existed on the cart server
+    # Create system user 'roboshop' to run the application
+    - name: Create roboshop system user
+      ansible.builtin.user:
+        name: roboshop
+        shell: /sbin/nologin
+        system: true
+        home: /app
 
-  - name: install the dependencies
-    community.general.npm: 
-      path: /app
+    # Download Cart microservice code from S3
+    - name: Download Cart application code
+      ansible.builtin.get_url:
+        url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip
+        dest: /tmp/cart.zip
 
-  - name: copy cart service file to system directory
-    ansible.builtin.copy:
-      src: cart.service
-      dest: /etc/systemd/system/cart.service
+    # Extract the downloaded zip on the remote host
+    - name: Extract Cart application code
+      ansible.builtin.unarchive:
+        src: /tmp/cart.zip
+        dest: /app
+        remote_src: yes   # File already exists on target, not copied from control node
+        owner: roboshop
+        group: roboshop
 
-  - name: systemctl daemon reload
-    ansible.builtin.systemd_service:
-      daemon_reload: true
+    # Install NodeJS dependencies for the app using npm
+    - name: Install npm dependencies
+      community.general.npm:
+        path: /app
 
-  - name: Starting and enabling cart
-    ansible.builtin.service:
-      name: cart
-      state: started
-      enabled: yes
+    # Copy systemd service file for Cart
+    - name: Copy Cart systemd service
+      ansible.builtin.copy:
+        src: cart.service
+        dest: /etc/systemd/system/cart.service
+
+    # Reload systemd to pick up new service
+    - name: Reload systemd daemon
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    # Enable and start Cart service
+    - name: Enable and start Cart service
+      ansible.builtin.service:
+        name: cart
+        state: started
+        enabled: yes
