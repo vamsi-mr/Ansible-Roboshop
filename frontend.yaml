@@ -1,59 +1,63 @@
-- name: configuring frontend component
+---
+- name: Configure frontend component
   hosts: frontend
   become: yes
+  vars_files:
+  - secrets.yml
+
   tasks:
-  - name: disabling default nginx
-    ansible.builtin.command: dnf module disable nginx -y
+    - name: Ensure NodeJS/Nginx module defaults are disabled (idempotent)
+      ansible.builtin.yum:
+        name: nginx
+        state: absent
 
-  - name: enabling nginx
-    ansible.builtin.command: dnf module enable nginx:1.24 -y
+    - name: Enable nginx:1.24 module
+      ansible.builtin.command: dnf module enable nginx:1.24 -y
+      args:
+        creates: /etc/alternatives/nginx
 
-  - name: installing nginx
-    ansible.builtin.package:
-      name: nginx
-      state: present
+    - name: Install nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
 
-  - name: starting and enabling nginx
-    ansible.builtin.service:
-      name: nginx
-      state: started
-      enabled: yes
+    - name: Start and enable nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
 
-  - name: remove html directory
-    ansible.builtin.file:
-      path: /usr/share/nginx/html
-      state: absent
+    - name: Ensure clean HTML directory
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+        owner: nginx
+        group: nginx
+        mode: '0755'
 
-  - name: create html directory
-    ansible.builtin.file:
-      path: /usr/share/nginx/html
-      state: directory
+    - name: Download frontend code if not already downloaded
+      ansible.builtin.get_url:
+        url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
+        dest: /tmp/frontend.zip
+        mode: '0644'
 
-  - name: download frontend code
-    ansible.builtin.get_url:
-      url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
-      dest: /tmp/frontend.zip
+    - name: Extract frontend code
+      ansible.builtin.unarchive:
+        src: /tmp/frontend.zip
+        dest: /usr/share/nginx/html
+        remote_src: yes
+        owner: nginx
+        group: nginx
 
-  - name: unzip frontend code
-    ansible.builtin.unarchive:
-      src: /tmp/frontend.zip
-      dest: /usr/share/nginx/html
-      remote_src: yes
+    - name: Deploy custom nginx config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
 
-  - name: remove default nginx conf
-    ansible.builtin.file:
-      path: /etc/nginx/nginx.conf
-      state: absent
-
-  - name: copy roboshop nginx conf
-    ansible.builtin.copy:
-      src: nginx.conf
-      dest: /etc/nginx/nginx.conf
-
-  - name: restart nginx
-    tags:
-    - import
-    ansible.builtin.service:
-      name: nginx
-      state: restarted
-
+    - name: Reload nginx to apply new configuration
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
