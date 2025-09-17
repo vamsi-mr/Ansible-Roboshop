@@ -23,6 +23,14 @@
         name: nodejs
         state: present
 
+    # Create system user 'roboshop' to run the application
+    - name: Create roboshop system user
+      ansible.builtin.user:
+        name: roboshop
+        shell: /sbin/nologin
+        system: true
+        home: /app
+
     # Create application directory /app with correct ownership and permissions
     - name: Create /app directory
       ansible.builtin.file:
@@ -31,14 +39,6 @@
         owner: roboshop
         group: roboshop
         mode: '0755'
-
-    # Create system user 'roboshop' to run the application
-    - name: Create roboshop system user
-      ansible.builtin.user:
-        name: roboshop
-        shell: /sbin/nologin
-        system: true
-        home: /app
 
     # Download Cart microservice code from S3
     - name: Download Cart application code
